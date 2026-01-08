@@ -69,7 +69,7 @@ def main():
                         help="Number of eval batches (default: 50)")
     parser.add_argument("--calib-samples", type=int, default=128,
                         help="Calibration samples (default: 128)")
-    parser.add_argument("--n-grid", type=int, default=20,
+    parser.add_argument("--num-grid-points", type=int, default=20,
                         help="AWQ grid search points (default: 20)")
     parser.add_argument("--group-size", type=int, default=128,
                         help="Weight group size (default: 128)")
@@ -129,7 +129,7 @@ def main():
             "--output-dir", args.output_dir,
             "--seq-len", str(args.seq_len),
             "--calib-samples", str(args.calib_samples),
-            "--n-grid", str(args.n_grid),
+            "--num-grid-points", str(args.num_grid_points),
             "--group-size", str(args.group_size),
             "--log-level", args.log_level,
         ]

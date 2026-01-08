@@ -130,7 +130,7 @@ def main():
         "seq_len": baseline.get("seq_len", 128),
         "eval_batches": baseline.get("eval_batches", 50),
         "calib_samples": quant.get("calib_samples", 128),
-        "n_grid": quant.get("n_grid", 20),
+        "num_grid_points": quant.get("num_grid_points", 20),
         "group_size": quant.get("group_size", 128),
         
         # Baseline metrics
@@ -177,7 +177,7 @@ def main():
         "seq_len": combined["seq_len"],
         "eval_batches": combined["eval_batches"],
         "calib_samples": combined["calib_samples"],
-        "n_grid": combined["n_grid"],
+        "num_grid_points": combined["num_grid_points"],
         "pre_perplexity": f"{pre_ppl:.6f}",
         "post_perplexity": f"{post_ppl:.6f}",
         "perplexity_delta": f"{ppl_delta:.6f}",

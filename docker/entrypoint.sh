@@ -103,7 +103,7 @@ print_usage() {
     echo "  --seq-len N             Sequence length (default: 128)"
     echo "  --eval-batches N        Number of eval batches (default: 50)"
     echo "  --calib-samples N       Calibration samples (default: 128)"
-    echo "  --n-grid N              AWQ grid search points (default: 20)"
+    echo "  --num-grid-points N              AWQ grid search points (default: 20)"
     echo "  --skip-baseline         Skip baseline benchmark"
     echo "  --skip-quantize         Skip quantization step"
     echo ""

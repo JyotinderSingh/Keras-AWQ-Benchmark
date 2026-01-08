@@ -452,7 +452,7 @@ CSV_HEADER = [
     "seq_len",
     "eval_batches",
     "calib_samples",
-    "n_grid",
+    "num_grid_points",
     "pre_perplexity",
     "post_perplexity",
     "perplexity_delta",

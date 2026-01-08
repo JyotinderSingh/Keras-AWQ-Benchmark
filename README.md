@@ -95,7 +95,7 @@ docker run ... jyotindersingh/awq-benchmark combine
 | `--seq-len` | `128` | Sequence length |
 | `--eval-batches` | `50` | Number of eval batches |
 | `--calib-samples` | `128` | Calibration samples |
-| `--n-grid` | `20` | AWQ grid search points |
+| `--num-grid-points` | `20` | AWQ grid search points |
 | `--skip-baseline` | `false` | Skip baseline benchmark |
 | `--skip-quantize` | `false` | Skip quantization |
 

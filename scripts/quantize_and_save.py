@@ -49,7 +49,7 @@ def main():
     parser.add_argument("--output-dir", default="/workspace/outputs", help="Directory for outputs")
     parser.add_argument("--seq-len", type=int, default=128, help="Sequence length for calibration")
     parser.add_argument("--calib-samples", type=int, default=128, help="Number of calibration samples")
-    parser.add_argument("--n-grid", type=int, default=20, help="AWQ grid search points")
+    parser.add_argument("--num-grid-points", type=int, default=20, help="AWQ grid search points")
     parser.add_argument("--group-size", type=int, default=128, help="Weight group size")
     parser.add_argument("--log-level", default="INFO", help="Logging level")
     args = parser.parse_args()
@@ -66,8 +66,8 @@ def main():
     logging.info("QUANTIZATION STEP (AWQ)")
     logging.info("=" * 60)
     logging.info("Model: %s / %s", args.model_class, args.model_preset)
-    logging.info("Config: n_grid=%d, group_size=%d, calib_samples=%d",
-                 args.n_grid, args.group_size, args.calib_samples)
+    logging.info("Config: num_grid_points=%d, group_size=%d, calib_samples=%d",
+                 args.num_grid_points, args.group_size, args.calib_samples)
 
     # Load calibration dataset from previous step
     calib_path = output_dir / "calibration_dataset.json"
@@ -108,7 +108,7 @@ def main():
         num_samples=args.calib_samples,
         sequence_length=args.seq_len,
         group_size=args.group_size,
-        n_grid=args.n_grid,
+        num_grid_points=args.num_grid_points,
     )
 
     # 4) Quantize with profiling
@@ -155,7 +155,7 @@ def main():
         "model_name": model_name,
         "seq_len": args.seq_len,
         "calib_samples": args.calib_samples,
-        "n_grid": args.n_grid,
+        "num_grid_points": args.num_grid_points,
         "group_size": args.group_size,
         "quantization_time_sec": prof["elapsed_sec"],
         "cpu_peak_bytes": prof["cpu_peak_bytes"],
