@@ -3,12 +3,12 @@
 Reproducible benchmarking for AWQ (Activation-aware Weight Quantization) in Keras/Keras-Hub.
 
 **Features:**
-- 🐳 One-command Docker run (no build required)
-- 🔧 Test any keras/keras-hub fork at runtime
-- 🧠 Process isolation prevents memory contamination
-- 📊 Comprehensive metrics (perplexity, latency, throughput, memory)
+- One-command Docker run (no build required)
+- Test any keras/keras-hub fork at runtime
+- Process isolation prevents memory contamination
+- Comprehensive metrics (perplexity, latency, throughput, memory)
 
-## Quick Start
+## Quick Start (Docker)
 
 ```bash
 # Run benchmark with default keras/keras-hub
@@ -63,7 +63,7 @@ docker run --gpus all \
 cat outputs/combined_results.json | python -m json.tool
 ```
 
-## Commands
+## Docker Commands
 
 ```bash
 # Full benchmark
@@ -84,20 +84,115 @@ docker run ... jyotindersingh/awq-benchmark quantized
 docker run ... jyotindersingh/awq-benchmark combine
 ```
 
-## Options
+## Running Without Docker
+
+You can run the benchmark scripts directly without Docker. This requires setting up the Python environment manually.
+
+### Prerequisites
+
+1. Python 3.9+
+2. NVIDIA GPU with CUDA support
+3. Required Python packages:
+   ```bash
+   pip install keras keras-hub tensorflow psutil datasets
+   ```
+
+### Running the Full Benchmark
+
+Use the orchestrator script to run all phases with process isolation:
+
+```bash
+python scripts/run_benchmark.py \
+    --model-class keras_hub.models.Gemma3CausalLM \
+    --model-preset gemma3_1b \
+    --output-dir ./outputs
+```
+
+### Running Individual Scripts
+
+You can also run each phase separately for debugging or custom workflows:
+
+```bash
+# Step 1: Benchmark baseline model
+python scripts/benchmark_baseline.py \
+    --model-class keras_hub.models.Gemma3CausalLM \
+    --model-preset gemma3_1b \
+    --output-dir ./outputs
+
+# Step 2: Quantize the model
+python scripts/quantize_and_save.py \
+    --model-class keras_hub.models.Gemma3CausalLM \
+    --model-preset gemma3_1b \
+    --output-dir ./outputs
+
+# Step 3: Benchmark quantized model (fresh process for clean memory measurement)
+python scripts/benchmark_quantized.py \
+    --output-dir ./outputs
+
+# Step 4: Combine results and generate report
+python scripts/combine_results.py \
+    --output-dir ./outputs
+```
+
+## Command-Line Options
+
+### Main Orchestrator (`run_benchmark.py`)
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--model-class` | (required) | Full model class path |
-| `--model-preset` | (required) | Model preset name |
+| `--model-class` | (required) | Full path to the Keras model class (e.g., `keras_hub.models.Gemma3CausalLM`) |
+| `--model-preset` | (required) | Model preset/checkpoint name (e.g., `gemma3_1b`, `gpt2_base_en`) |
+| `--output-dir` | `/workspace/outputs` | Directory where all output files will be saved |
+| `--dataset-name` | `wikitext2` | Dataset used for perplexity evaluation |
+| `--seq-len` | `128` | Sequence length for evaluation and calibration |
+| `--eval-batches` | `50` | Number of batches to use for perplexity evaluation |
+| `--calib-samples` | `128` | Number of calibration samples for AWQ quantization |
+| `--num-grid-points` | `20` | Number of grid search points for AWQ scale optimization |
+| `--group-size` | `128` | Weight group size for quantization (smaller = more precision, larger file) |
+| `--log-level` | `INFO` | Logging verbosity (DEBUG, INFO, WARNING, ERROR) |
+| `--skip-baseline` | `false` | Skip the baseline benchmark phase (use if baseline already exists) |
+| `--skip-quantize` | `false` | Skip the quantization phase (use if quantized model already exists) |
+
+### Baseline Benchmark (`benchmark_baseline.py`)
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--model-class` | (required) | Full path to the Keras model class |
+| `--model-preset` | (required) | Model preset/checkpoint name |
 | `--output-dir` | `/workspace/outputs` | Output directory |
-| `--dataset-name` | `wikitext2` | Evaluation dataset |
+| `--dataset-name` | `wikitext2` | Dataset for evaluation |
 | `--seq-len` | `128` | Sequence length |
-| `--eval-batches` | `50` | Number of eval batches |
-| `--calib-samples` | `128` | Calibration samples |
-| `--num-grid-points` | `20` | AWQ grid search points |
-| `--skip-baseline` | `false` | Skip baseline benchmark |
-| `--skip-quantize` | `false` | Skip quantization |
+| `--eval-batches` | `50` | Number of evaluation batches |
+| `--calib-samples` | `128` | Number of calibration samples to save for quantization |
+| `--log-level` | `INFO` | Logging level |
+
+### Quantization (`quantize_and_save.py`)
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--model-class` | (required) | Full path to the Keras model class |
+| `--model-preset` | (required) | Model preset/checkpoint name |
+| `--output-dir` | `/workspace/outputs` | Output directory |
+| `--seq-len` | `128` | Sequence length for calibration |
+| `--calib-samples` | `128` | Number of calibration samples |
+| `--num-grid-points` | `20` | AWQ grid search points (higher = better quality, slower) |
+| `--group-size` | `128` | Weight group size |
+| `--log-level` | `INFO` | Logging level |
+
+### Quantized Benchmark (`benchmark_quantized.py`)
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--output-dir` | `/workspace/outputs` | Directory containing the quantized model and previous results |
+| `--log-level` | `INFO` | Logging level |
+
+### Combine Results (`combine_results.py`)
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--output-dir` | `/workspace/outputs` | Directory containing all benchmark results |
+| `--csv-path` | `awq_benchmarks.csv` | Filename for the CSV output (created in output-dir) |
+| `--log-level` | `INFO` | Logging level |
 
 ## Environment Variables
 
@@ -111,11 +206,12 @@ docker run ... jyotindersingh/awq-benchmark combine
 
 ```
 outputs/
-├── combined_results.json          # ← Full comparison (main result)
+├── combined_results.json          # Full comparison (main result)
 ├── baseline_results.json          # Pre-quantized metrics
 ├── quantization_results.json      # Quantization stats
 ├── quantized_benchmark_results.json
 ├── awq_benchmarks.csv             # CSV for spreadsheets
+├── calibration_dataset.json       # Saved calibration data
 ├── {model}_baseline.keras         # Saved baseline model
 └── {model}_awq.keras              # Saved quantized model
 ```
@@ -173,8 +269,14 @@ Any Keras-Hub causal LM with `.quantize("awq", ...)` support:
 
 ## Requirements
 
-- Docker with NVIDIA GPU support
+**For Docker:**
+- Docker with NVIDIA GPU support (`nvidia-docker`)
 - NVIDIA GPU with CUDA
+
+**For running without Docker:**
+- Python 3.9+
+- NVIDIA GPU with CUDA
+- Required packages: `keras`, `keras-hub`, `tensorflow`, `psutil`, `datasets`
 
 ## Troubleshooting
 
